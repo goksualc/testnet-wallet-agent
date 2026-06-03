@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "testnet-wallet-agent": {
+      "command": "node",
+      "args": [
+        "/ABSOLUTE/PATH/TO/testnet-wallet-agent/dist/index.js"
+      ],
+      "env": {
+        "PRIVATE_KEY": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+        "CHAIN": "sepolia",
+        "MAX_SEND_ETH": "0.1"
+      }
+    }
+  }
+}

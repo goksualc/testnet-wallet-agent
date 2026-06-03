@@ -1,0 +1,41 @@
+{
+  "name": "testnet-wallet-agent",
+  "version": "0.1.0",
+  "description": "Local MCP server: testnet wallet tools for Claude via Viem (EVM testnets only).",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "testnet-wallet-agent": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "inspect": "npx @modelcontextprotocol/inspector node dist/index.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "viem",
+    "ethereum",
+    "sepolia",
+    "testnet",
+    "claude"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "dotenv": "^16.4.7",
+    "viem": "^2.31.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  }
+}

@@ -1,0 +1,14 @@
+# Dependencies — install with: npm install
+node_modules/
+
+# TypeScript build output — create with: npm run build
+dist/
+
+# Secrets — NEVER commit real keys (use .env.example as template only)
+.env
+
+# Local logs
+*.log
+
+# macOS
+.DS_Store
