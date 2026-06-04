@@ -106,9 +106,16 @@ npm run build
 
 ### 2. Edit Claude’s config (macOS)
 
+write to terminal: 
+
+```bash
+open ~/Library/Application\ Support/Claude
+```
+
 Open:
 
-`~/Library/Application Support/Claude/claude_desktop_config.json`
+`~/Library/Application Support/Claude/claude_desktop_config.json` 
+
 
 Add (merge with existing `mcpServers` if you already have others):
 
