@@ -11,7 +11,7 @@ import {
   type Address,
   type Hash,
 } from "viem";
-import type { AppConfig } from "../../config/env.js";
+import type { AppConfig } from "../../config/user-config.js";
 import type {
   BalanceResult,
   ChainWalletProvider,

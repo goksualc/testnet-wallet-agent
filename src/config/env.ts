@@ -12,7 +12,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { config as loadDotenv } from "dotenv";
 import { z } from "zod";
-import type { EvmTestnetId } from "./chains.js";
+import type { AppConfig } from "./user-config.js";
+
+export type { AppConfig } from "./user-config.js";
 
 /**
  * Load .env from the project root, not process.cwd().
@@ -45,16 +47,6 @@ const envSchema = z.object({
   RPC_URL: z.string().url().optional(),
   MAX_SEND_ETH: z.coerce.number().positive().default(0.1),
 });
-
-/**
- * Typed config object used everywhere else (no raw process.env access).
- */
-export type AppConfig = {
-  privateKey: `0x${string}`;
-  chain: EvmTestnetId;
-  rpcUrl?: string;
-  maxSendEth: number;
-};
 
 /** Singleton cache — env is read once per process lifetime. */
 let cached: AppConfig | undefined;

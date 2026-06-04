@@ -6,8 +6,7 @@
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { createWalletProvider } from "./blockchain/index.js";
-import { getConfig } from "./config/env.js";
+import { getWallet } from "./services/wallet-service.js";
 import { registerTools } from "./tools/index.js";
 
 /**
@@ -24,7 +23,7 @@ Workflow:
 
 Constraints:
 - Operates only on allowlisted testnets (Sepolia, Base Sepolia, Arbitrum Sepolia).
-- send_testnet_eth is capped by MAX_SEND_ETH in the server environment.
+- send_testnet_eth is capped by maxSendEth in ~/.testnet-wallet-agent/config.json or MAX_SEND_ETH in .env.
 - Never use real/mainnet funds with this wallet.`;
 
 /**
@@ -35,13 +34,12 @@ Constraints:
  * @returns McpServer ready for server.connect(transport)
  */
 export function createMcpServer(): McpServer {
-  const config = getConfig();
-  const wallet = createWalletProvider(config);
+  const wallet = getWallet();
 
   const server = new McpServer(
     {
       name: "testnet-wallet-agent",
-      version: "0.1.0",
+      version: "0.2.0",
     },
     {
       instructions: SERVER_INSTRUCTIONS,

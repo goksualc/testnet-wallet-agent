@@ -24,7 +24,7 @@ import {
   getEvmTestnet,
   type EvmChainConfig,
 } from "../../config/chains.js";
-import type { AppConfig } from "../../config/env.js";
+import type { AppConfig } from "../../config/user-config.js";
 
 /** Bundle of chain metadata + Viem clients used by EvmWalletProvider. */
 export type EvmClients = {
