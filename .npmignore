@@ -1,0 +1,11 @@
+# Source and dev files are not published (dist/ is built in prepublishOnly)
+src/
+tsconfig.json
+.env
+.env.*
+!.env.example
+node_modules/
+.git/
+.github/
+*.log
+.DS_Store

@@ -67,7 +67,13 @@ export function getConfig(): AppConfig {
     const details = parsed.error.issues
       .map((i) => `${i.path.join(".")}: ${i.message}`)
       .join("; ");
-    throw new Error(`Invalid environment configuration: ${details}`);
+    throw new Error(
+      [
+        `Invalid environment configuration: ${details}`,
+        "For global installs, run: testnet-wallet-agent setup",
+        "For local dev, copy .env.example to .env in the project root.",
+      ].join("\n"),
+    );
   }
 
   cached = {

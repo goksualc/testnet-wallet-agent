@@ -10,7 +10,19 @@ export function resolveAppConfig(): AppConfig {
   if (configExists()) {
     return loadUserConfig();
   }
-  return getConfig();
+  try {
+    return getConfig();
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    throw new Error(
+      [
+        "No wallet configuration found.",
+        "Run: testnet-wallet-agent setup",
+        "Config file: ~/.testnet-wallet-agent/config.json",
+        `(env fallback failed: ${detail})`,
+      ].join("\n"),
+    );
+  }
 }
 
 /** Shared wallet backend for CLI commands and MCP tools. */

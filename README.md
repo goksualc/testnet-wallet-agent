@@ -1,198 +1,258 @@
 # Testnet Wallet Agent
 
-A **local wallet assistant** for Claude and your terminal. One package provides a **global CLI** and an **MCP server** with five tools: wallet address, balance, send testnet ETH, transaction status, and faucet instructions.
+[![npm version](https://img.shields.io/npm/v/testnet-wallet-agent)](https://www.npmjs.com/package/testnet-wallet-agent)
+[![Node](https://img.shields.io/node/v/testnet-wallet-agent)](https://nodejs.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-**Testnets only** — no mainnet. Default network: **Ethereum Sepolia**.
+Global **CLI** and **MCP server** for EVM testnets: Sepolia, Base Sepolia, and Arbitrum Sepolia. Use it in your terminal or with Claude Desktop — like a small MoonPay-style wallet tool, focused on testnets only.
+
+> **Testnets only.** Mainnet chain IDs are blocked in code. Use a dedicated testnet private key.
 
 ```text
-You  →  Claude Desktop  →  MCP  →  testnet-wallet-agent  →  testnet RPC  →  blockchain
+Terminal / Claude  →  testnet-wallet-agent  →  JSON-RPC  →  testnet
 ```
 
-Claude does **not** store your private key. Config lives on your machine; transactions are signed locally.
+Your private key never leaves your machine. It is stored in `~/.testnet-wallet-agent/config.json`, not in npm or Claude’s config.
+
+---
+
+## Features
+
+- **Global CLI** — `setup`, `address`, `balance`, `send`, `status`
+- **MCP tools** for Claude — balance, send, faucets, tx status
+- **One-command Claude setup** — `install-claude` (no manual JSON editing)
+- **Shared wallet layer** — CLI and MCP use the same Viem backend
+
+---
+
+## Requirements
+
+- [Node.js 20+](https://nodejs.org/)
+- A testnet-only wallet private key (`0x` + 64 hex characters)
 
 ---
 
 ## Install
 
+### From npm (after publish)
+
 ```bash
 npm install -g testnet-wallet-agent
 ```
 
-Local development:
+> **Package not on npm yet?** Use [local install](#local-install-without-npm-registry) below.
 
-```bash
-git clone <repo>
-cd testnet-wallet-agent
-npm install
-npm run build
-npm link   # if EACCES on /usr/local: npm config set prefix ~/.local
-```
-
----
-
-## Quick start
+### Configure and connect Claude
 
 ```bash
 testnet-wallet-agent setup
 testnet-wallet-agent install-claude
 ```
 
-Restart Claude Desktop completely.
+Quit and reopen **Claude Desktop**, then start a new chat. You should see the **testnet-wallet-agent** MCP server and its tools.
 
-Config file: `~/.testnet-wallet-agent/config.json` (mode `600`).
+Verify the CLI:
 
-Generate a testnet-only key:
+```bash
+testnet-wallet-agent --version
+testnet-wallet-agent address
+testnet-wallet-agent balance
+```
+
+---
+
+## Quick start
+
+| Step | What to run |
+|------|-------------|
+| 1 | `npm install -g testnet-wallet-agent` |
+| 2 | `testnet-wallet-agent setup` — enter private key and chain |
+| 3 | `testnet-wallet-agent install-claude` — restart Claude |
+| 4 | Fund the wallet (faucets — ask Claude or use public Sepolia faucets) |
+| 5 | `testnet-wallet-agent balance` or chat with Claude |
+
+**Generate a new testnet key (recommended):**
 
 ```bash
 cast wallet new
 ```
 
-Copy the line labeled **Private key** (it already starts with `0x`) into `.env`.
-
-**Common mistakes**
-
-| Mistake | Fix |
-|---------|-----|
-| `PRIVATE_KEY: Required` | `.env` missing or wrong path — run commands from project root, or rebuild after updates |
-| `must be 0x-prefixed 32-byte hex` | Add `0x`, use only hex digits, exactly 64 chars after `0x`, no quotes, no trailing spaces |
-| Key ends with invalid letter (e.g. `X`) | Re-copy from wallet export or generate a new key |
-
-Other variables (defaults are fine for MVP):
-
-| Variable | Example | Purpose |
-|----------|---------|---------|
-| `CHAIN` | `sepolia` | Network: `sepolia`, `base-sepolia`, or `arbitrum-sepolia` |
-| `RPC_URL` | *(optional)* | Custom RPC if public endpoints are slow |
-| `MAX_SEND_ETH` | `0.1` | Max ETH per `send_testnet_eth` call |
-
-### 3. Verify the server starts
-
-```bash
-npm start
-```
-
-**Success** looks like:
-
-```text
-[testnet-wallet-agent] INFO  Testnet Wallet Agent MCP server running on stdio
-```
-
-The terminal **stays open** and does nothing else — that is correct. The server is waiting for Claude or Inspector to connect. Press `Ctrl+C` to stop.
-
-> **Note:** `npm start` alone does not open a chat UI. Use Claude Desktop or `npm run inspect` below.
+Copy the **Private key** line into `testnet-wallet-agent setup`.
 
 ---
 
-## Use with Claude Desktop
+## CLI reference
 
-### 1. Build the project
+| Command | Description |
+|---------|-------------|
+| `testnet-wallet-agent setup` | Interactive wizard → `~/.testnet-wallet-agent/config.json` |
+| `testnet-wallet-agent mcp` | Start MCP server on stdio (used by Claude) |
+| `testnet-wallet-agent address` | Print wallet address |
+| `testnet-wallet-agent balance` | Print testnet ETH balance |
+| `testnet-wallet-agent send --to <0x> --amount <eth>` | Send testnet ETH |
+| `testnet-wallet-agent status --hash <0xTxHash>` | Check transaction status |
+| `testnet-wallet-agent install-claude` | Register MCP server in Claude Desktop |
+
+**Examples:**
 
 ```bash
-npm run build
+testnet-wallet-agent send --to 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0 --amount 0.001
+testnet-wallet-agent status --hash 0xabc123...def
 ```
 
-### 2. Edit Claude’s config (macOS)
+---
 
-Open:
+## Configuration
 
-`~/Library/Application Support/Claude/claude_desktop_config.json`
-
-Add (merge with existing `mcpServers` if you already have others):
+**Default (global install):** `~/.testnet-wallet-agent/config.json` (file mode `600`)
 
 ```json
 {
-  "command": "testnet-wallet-agent",
-  "args": ["mcp"]
+  "privateKey": "0xYOUR_64_HEX_CHAR_PRIVATE_KEY",
+  "chain": "sepolia",
+  "maxSendEth": 0.1
 }
 ```
 
-Secrets stay in `~/.testnet-wallet-agent/config.json`, not in Claude’s config.
+Optional fields: `rpcUrl` (custom JSON-RPC), `maxSendEth` (per-send cap).
 
-### Example Claude prompts
+**Supported chains:** `sepolia` (default), `base-sepolia`, `arbitrum-sepolia`
 
-| Goal | Example |
-|------|---------|
-| Address | “What is my testnet wallet address?” |
-| Fund | “How do I get Sepolia testnet ETH?” |
-| Balance | “What is my Sepolia balance?” |
-| Send | “Send 0.001 testnet ETH to `0x...`” |
-| Status | “Status of transaction `0x...`?” |
+**Config priority**
+
+1. `~/.testnet-wallet-agent/config.json` if it exists  
+2. Otherwise `.env` / environment variables (for local development)
 
 ---
 
-## Alternative: project `.env` (developers)
+## Claude Desktop
 
-For hacking this repo without global config, use a `.env` file:
+`install-claude` merges this into `claude_desktop_config.json`:
 
-```bash
-cp .env.example .env
-# edit PRIVATE_KEY, CHAIN, MAX_SEND_ETH
-npm run build
-npm start          # MCP on stdio (same as testnet-wallet-agent mcp)
-npm run inspect    # MCP Inspector
+```json
+{
+  "mcpServers": {
+    "testnet-wallet-agent": {
+      "command": "testnet-wallet-agent",
+      "args": ["mcp"]
+    }
+  }
+}
 ```
 
-**Config priority:** `~/.testnet-wallet-agent/config.json` if it exists, otherwise `.env` / `process.env`.
+Secrets stay in `~/.testnet-wallet-agent/config.json` — **not** in Claude’s config.
+
+**Example prompts**
+
+| Goal | Say in Claude |
+|------|----------------|
+| Address | “What is my testnet wallet address?” |
+| Fund | “How do I get Sepolia testnet ETH for this wallet?” |
+| Balance | “What is my Sepolia balance?” |
+| Send | “Send 0.001 testnet ETH to `0x...`” |
+| Status | “What is the status of transaction `0x...`?” |
 
 ---
 
 ## MCP tools
 
-| Tool | Read / write | Description |
-|------|--------------|-------------|
-| `get_wallet_address` | Read | `0x…` address |
-| `get_balance` | Read | Balance in wei and ETH |
-| `faucet_instructions` | Read | Faucet steps and links |
-| `send_testnet_eth` | Write | Send ETH (`to`, `amount_eth`); capped by max send |
+| Tool | Type | Description |
+|------|------|-------------|
+| `get_wallet_address` | Read | Wallet address on the active chain |
+| `get_balance` | Read | Native ETH balance |
+| `faucet_instructions` | Read | Faucet steps and URLs |
+| `send_testnet_eth` | Write | Send ETH (`to`, `amount_eth`) |
 | `transaction_status` | Read | `pending` / `success` / `reverted` / `not_found` |
 
 ---
 
-## Networks
+## Local install (without npm registry)
 
-`sepolia` (default), `base-sepolia`, `arbitrum-sepolia`
+From a git clone:
 
-**CLI:** `testnet-wallet-agent setup` or edit `~/.testnet-wallet-agent/config.json`  
-**`.env`:** set `CHAIN=...` and restart MCP
+```bash
+git clone https://github.com/goksualc/testnet-wallet-agent.git
+cd testnet-wallet-agent
+npm install
+npm run build
+npm link
+```
+
+If `npm link` fails with **EACCES** on `/usr/local`:
+
+```bash
+npm config set prefix "$HOME/.local"
+export PATH="$HOME/.local/bin:$PATH"
+# add the export line to ~/.zshrc for new terminals
+npm link
+```
+
+Install globally from the project directory (no link):
+
+```bash
+npm run build
+npm install -g .
+```
+
+Test exactly what npm users get:
+
+```bash
+npm run build
+npm pack
+npm install -g ./testnet-wallet-agent-0.2.0.tgz
+```
+
+### Contributors: `.env` + MCP Inspector
+
+```bash
+cp .env.example .env
+# edit PRIVATE_KEY, CHAIN, MAX_SEND_ETH
+npm run build
+npm start              # MCP on stdio (legacy entry)
+npm run inspect        # MCP Inspector UI
+```
+
+See `.env.example` and `claude_desktop_config.example.json` in this repo.
 
 ---
 
-## npm scripts
+## Development
+
+```text
+src/
+  cli.ts                 Commander entry (npm global bin)
+  index.ts               MCP stdio entry (npm start)
+  server.ts              MCP server + tool registration
+  commands/              setup, mcp, address, balance, send, status, install-claude
+  services/wallet-service.ts   Shared by CLI + MCP
+  config/                user-config + .env loader
+  blockchain/evm/        Viem wallet + RPC
+  tools/                 MCP tool handlers
+  mcp/run.ts             Stdio transport
+```
 
 | Script | Purpose |
 |--------|---------|
 | `npm run build` | Compile TypeScript → `dist/` |
-| `npm start` | MCP stdio (`dist/index.js`, legacy entry) |
-| `npm run dev` | CLI from source (`tsx src/cli.ts`) |
-| `npm run dev:mcp` | MCP from source |
+| `npm start` | Run MCP server (`dist/index.js`) |
+| `npm run dev` | Run CLI from source (`tsx`) |
+| `npm run dev:mcp` | Run MCP from source |
+| `npm run typecheck` | Typecheck without emit |
 | `npm run inspect` | MCP Inspector |
-| `npm run typecheck` | Typecheck only |
+| `npm run pack:check` | Preview publish tarball |
+| `npm run publish:public` | `npm publish --access public` |
 
 ---
 
-## Project layout
+## Publish to npm (maintainers)
 
-```text
-src/
-  cli.ts              Commander CLI entry (global bin)
-  index.ts            MCP stdio entry (npm start)
-  server.ts           MCP server + tool registration
-  commands/           setup, mcp, address, balance, send, status, install-claude
-  services/           wallet-service (shared by CLI + MCP)
-  config/             user-config.json + .env loader
-  blockchain/evm/     Viem wallet + RPC
-  tools/              MCP tool handlers
-  mcp/run.ts          Stdio transport lifecycle
+```bash
+npm login
+npm run pack:check
+npm publish --access public
 ```
 
----
-
-## Safety
-
-- Dedicated **testnet-only** private key
-- Never commit `.env` or `~/.testnet-wallet-agent/config.json`
-- Mainnet chain IDs blocked in code
-- Sends capped by `maxSendEth` / `MAX_SEND_ETH`
+`prepublishOnly` runs typecheck and build so the published package always includes compiled `dist/`.
 
 ---
 
@@ -200,17 +260,36 @@ src/
 
 | Symptom | Fix |
 |---------|-----|
-| `permission denied: testnet-wallet-agent` | `npm run build` (sets +x on bin), then `npm link` |
-| `npm link` EACCES | `npm config set prefix ~/.local`; add `~/.local/bin` to PATH |
-| `Configuration not found` | `testnet-wallet-agent setup` |
-| `install-claude` JSON error | Re-run — repairs configs missing `{` |
-| Claude has no tools | `install-claude`, restart Claude, `which testnet-wallet-agent` |
-| `PRIVATE_KEY: Required` (no global config) | Create `.env` or run `setup` |
-| Send “insufficient funds” | Use faucets from `faucet_instructions`, check balance |
-| Send “exceeds MAX_SEND_ETH” | Lower amount or raise cap in config |
+| `404` on `npm install -g testnet-wallet-agent` | Not published yet — use `npm link` or `npm install -g .` |
+| `permission denied: testnet-wallet-agent` | `npm run build` then reinstall or `npm link` |
+| `npm link` EACCES | `npm config set prefix ~/.local` and add `~/.local/bin` to `PATH` |
+| `Configuration not found` | Run `testnet-wallet-agent setup` |
+| `PRIVATE_KEY: Required` | Run `setup`, or create `.env` for local dev |
+| Invalid private key format | Must be `0x` + exactly 64 hex chars |
+| Claude shows no tools | `install-claude`, full quit/restart of Claude, check `which testnet-wallet-agent` |
+| `install-claude` JSON error | Re-run — repairs configs missing a leading `{` |
+| Send fails: insufficient funds | Fund via faucets (`faucet_instructions`), check `balance` |
+| Send fails: exceeds cap | Lower `--amount` or raise `maxSendEth` in config |
+
+---
+
+## Safety
+
+- Use a **dedicated testnet key** — never a mainnet wallet with real funds  
+- Do not commit `.env` or `~/.testnet-wallet-agent/config.json`  
+- Mainnet chain IDs are blocked in code  
+- Sends are capped by `maxSendEth` in config (default `0.1`)
+
+---
+
+## Links
+
+- [GitHub](https://github.com/goksualc/testnet-wallet-agent)
+- [npm](https://www.npmjs.com/package/testnet-wallet-agent) (after publish)
+- [Report issues](https://github.com/goksualc/testnet-wallet-agent/issues)
 
 ---
 
 ## License
 
-MIT
+[MIT](LICENSE)
